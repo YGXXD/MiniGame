@@ -1,0 +1,60 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+
+#include "MiniGameGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "MiniGame/GamePlayCore/Character/MiniCharacter.h"
+#include "MiniGame/GamePlayCore/Controller/MiniController.h"
+#include "MiniGame/GamePlayCore/Controller/ShareCamera.h"
+
+AMiniGameGameModeBase::AMiniGameGameModeBase(const FObjectInitializer& ObjectInitializer)
+{
+	PrimaryActorTick.bCanEverTick = true;
+	DefaultPawnClass = nullptr;
+	PlayerControllerClass = AMiniController::StaticClass();
+}
+
+void AMiniGameGameModeBase::BeginPlay()
+{
+	Super::BeginPlay();
+	UGameplayStatics::CreatePlayer(GetWorld());
+
+	if(UWorld* ThisWord = GetWorld())
+	{
+		//生成共享相机
+		const FVector SpawnLocationCamera(0,0,0);
+		const FRotator SpawnRotationCamera(0,0,0);
+		FActorSpawnParameters ParametersCamera;
+		ParametersCamera.Owner = this;
+		ParametersCamera.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		AShareCamera* ShareCamera = ThisWord->SpawnActor<AShareCamera>(AShareCamera::StaticClass(),SpawnLocationCamera,SpawnRotationCamera,ParametersCamera);
+
+		//生成角色1
+		const FVector SpawnLocationOne(0,0,100);
+		const FRotator SpawnRotationOne(0,0,0);
+		FActorSpawnParameters ParametersOne;
+		ParametersOne.Owner = UGameplayStatics::GetPlayerController(ThisWord,0);
+		ParametersOne.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		AMiniCharacter* CharacterOne = ThisWord->SpawnActor<AMiniCharacter>(AMiniCharacter::StaticClass(),SpawnLocationOne,SpawnRotationOne,ParametersOne);
+		CharacterOne->SetShareCamera(ShareCamera);
+		UGameplayStatics::GetPlayerController(ThisWord,0)->Possess(CharacterOne);
+
+		//生成角色2
+		const FVector SpawnLocationTwo(20,20,100);
+		const FRotator SpawnRotationTwo(0,0,0);
+		FActorSpawnParameters ParametersTwo;
+		ParametersTwo.Owner = UGameplayStatics::GetPlayerController(ThisWord,1);
+		ParametersTwo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		AMiniCharacter* CharacterTwo = ThisWord->SpawnActor<AMiniCharacter>(AMiniCharacter::StaticClass(),SpawnLocationTwo,SpawnRotationTwo,ParametersTwo);
+		CharacterTwo->SetShareCamera(ShareCamera);
+		UGameplayStatics::GetPlayerController(ThisWord,1)->Possess(CharacterTwo);
+	}
+}
+
+void AMiniGameGameModeBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+}
+
+
+
