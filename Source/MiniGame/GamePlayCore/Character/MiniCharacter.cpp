@@ -13,7 +13,7 @@ AMiniCharacter::AMiniCharacter(const FObjectInitializer& ObjectInitializer)
 	PrimaryActorTick.bCanEverTick = true;
 
 	MeshComp = GetMesh();
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Mesh(TEXT("SkeletalMesh'/Game/ThirdPersonAnim/UE4_Mannequin/Mesh/SM_TPBody.SM_TPBody'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Mesh(TEXT("SkeletalMesh'/Game/GamePlayAsset/Character/Player_One/mesh/MainChacrcter3.MainChacrcter3'"));
 	if(SK_Mesh.Succeeded())
 	{
 		MeshComp->SetSkeletalMesh(SK_Mesh.Object);
