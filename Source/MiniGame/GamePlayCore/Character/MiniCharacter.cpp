@@ -11,15 +11,20 @@
 AMiniCharacter::AMiniCharacter(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
-
+	bUseControllerRotationYaw = false;
+	
 	MeshComp = GetMesh();
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Mesh(TEXT("SkeletalMesh'/Game/GamePlayAsset/Character/Player_One/mesh/MainChacrcter3.MainChacrcter3'"));
 	if(SK_Mesh.Succeeded())
 	{
 		MeshComp->SetSkeletalMesh(SK_Mesh.Object);
 	}
+	MeshComp->SetRelativeLocation(FVector(0,0,-90));
+	MeshComp->SetRelativeRotation(FRotator(0,-90,0));
 	
 	MovementComp = GetCharacterMovement();
+	MovementComp->RotationRate = FRotator(0,720,0);
+	MovementComp->bOrientRotationToMovement = true;
 }
 
 void AMiniCharacter::SetShareCamera(AShareCamera* Camera)
