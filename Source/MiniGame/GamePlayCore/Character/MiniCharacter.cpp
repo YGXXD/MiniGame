@@ -3,6 +3,7 @@
 
 #include "MiniCharacter.h"
 
+#include "MiniAnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MiniGame/GamePlayCore/Controller/ShareCamera.h"
@@ -14,10 +15,15 @@ AMiniCharacter::AMiniCharacter(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationYaw = false;
 	
 	MeshComp = GetMesh();
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Mesh(TEXT("SkeletalMesh'/Game/GamePlayAsset/Character/Player_One/mesh/MainChacrcter3.MainChacrcter3'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Mesh(TEXT("SkeletalMesh'/Game/GamePlayAsset/Character/mesh/MainChacrcter3.MainChacrcter3'"));
 	if(SK_Mesh.Succeeded())
 	{
 		MeshComp->SetSkeletalMesh(SK_Mesh.Object);
+	}
+	static ConstructorHelpers::FClassFinder<UMiniAnimInstance> ABP_MiniAnim(TEXT("AnimBlueprint'/Game/GamePlayCore/Character/ABP_MiniCharacterAnim.ABP_MiniCharacterAnim_C'"));
+	if(ABP_MiniAnim.Succeeded())
+	{
+		MeshComp->AnimClass = ABP_MiniAnim.Class;
 	}
 	MeshComp->SetRelativeLocation(FVector(0,0,-90));
 	MeshComp->SetRelativeRotation(FRotator(0,-90,0));
@@ -25,6 +31,10 @@ AMiniCharacter::AMiniCharacter(const FObjectInitializer& ObjectInitializer)
 	MovementComp = GetCharacterMovement();
 	MovementComp->RotationRate = FRotator(0,720,0);
 	MovementComp->bOrientRotationToMovement = true;
+	MovementComp->JumpZVelocity = 600.f;
+	MovementComp->AirControl = 0.8f;
+	MovementComp->MaxWalkSpeed = 300.f;
+	MovementComp->GravityScale = 2.f;
 }
 
 void AMiniCharacter::SetShareCamera(AShareCamera* Camera)

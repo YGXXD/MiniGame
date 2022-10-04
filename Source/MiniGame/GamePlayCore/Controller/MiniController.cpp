@@ -29,6 +29,8 @@ void AMiniController::OnPossess(APawn* InPawn)
 				InputComponent->BindAxis(TEXT("MoveForwardOne"),MiniCharacter,&AMiniCharacter::MoveForward);
 				InputComponent->BindAxis(TEXT("MoveRightOne"),MiniCharacter,&AMiniCharacter::MoveRight);
 				InputComponent->BindAxis(TEXT("TurnOne"),MiniCharacter,&AMiniCharacter::Turn);
+				InputComponent->BindAction(TEXT("JumpOne"),IE_Pressed,MiniCharacter,&AMiniCharacter::Jump);
+				InputComponent->BindAction(TEXT("JumpOne"),IE_Released,MiniCharacter,&AMiniCharacter::StopJumping);
 			}
 			break;
 		case 1:
@@ -36,6 +38,8 @@ void AMiniController::OnPossess(APawn* InPawn)
 				UKismetSystemLibrary::PrintString(GetWorld(),TEXT("绑定成功"));
 				InputComponent->BindAxis(TEXT("MoveForwardTwo"),MiniCharacter,&AMiniCharacter::MoveForward);
 				InputComponent->BindAxis(TEXT("MoveRightTwo"),MiniCharacter,&AMiniCharacter::MoveRight);
+				InputComponent->BindAction(TEXT("JumpTwo"),IE_Pressed,MiniCharacter,&AMiniCharacter::Jump);
+				InputComponent->BindAction(TEXT("JumpTwo"),IE_Released,MiniCharacter,&AMiniCharacter::StopJumping);
 			}
 			break;
 		default:
