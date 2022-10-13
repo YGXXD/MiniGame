@@ -31,6 +31,8 @@ void AMiniController::OnPossess(APawn* InPawn)
 				InputComponent->BindAxis(TEXT("TurnOne"),MiniCharacter,&AMiniCharacter::Turn);
 				InputComponent->BindAction(TEXT("JumpOne"),IE_Pressed,MiniCharacter,&AMiniCharacter::Jump);
 				InputComponent->BindAction(TEXT("JumpOne"),IE_Released,MiniCharacter,&AMiniCharacter::StopJumping);
+				InputComponent->BindAction(TEXT("InteractOne"), IE_Pressed,MiniCharacter,&AMiniCharacter::InteractPressed);
+				InputComponent->BindAction(TEXT("InteractOne"), IE_Released,MiniCharacter,&AMiniCharacter::InteractReleased);
 			}
 			break;
 		case 1:
@@ -40,6 +42,8 @@ void AMiniController::OnPossess(APawn* InPawn)
 				InputComponent->BindAxis(TEXT("MoveRightTwo"),MiniCharacter,&AMiniCharacter::MoveRight);
 				InputComponent->BindAction(TEXT("JumpTwo"),IE_Pressed,MiniCharacter,&AMiniCharacter::Jump);
 				InputComponent->BindAction(TEXT("JumpTwo"),IE_Released,MiniCharacter,&AMiniCharacter::StopJumping);
+				InputComponent->BindAction(TEXT("InteractTwo"), IE_Pressed,MiniCharacter,&AMiniCharacter::InteractPressed);
+				InputComponent->BindAction(TEXT("InteractTwo"), IE_Released,MiniCharacter,&AMiniCharacter::InteractReleased);
 			}
 			break;
 		default:

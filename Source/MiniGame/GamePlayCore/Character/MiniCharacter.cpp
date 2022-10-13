@@ -5,8 +5,11 @@
 
 #include "MiniAnimInstance.h"
 #include "Camera/CameraComponent.h"
+#include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MiniGame/GamePlayCore/Controller/ShareCamera.h"
+#include "MiniGame/GamePlayCore/Interaction/InteractionInterface.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 AMiniCharacter::AMiniCharacter(const FObjectInitializer& ObjectInitializer)
@@ -35,6 +38,16 @@ AMiniCharacter::AMiniCharacter(const FObjectInitializer& ObjectInitializer)
 	MovementComp->AirControl = 0.8f;
 	MovementComp->MaxWalkSpeed = 300.f;
 	MovementComp->GravityScale = 2.f;
+
+	CurrInteractActor = nullptr;
+	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
+	BoxComp->SetupAttachment(RootComponent);
+	BoxComp->SetRelativeLocation(FVector(40,0,0));
+	BoxComp->SetBoxExtent(FVector(40,16,16));
+	BoxComp->SetCollisionProfileName(TEXT("InteractAll"));
+	BoxComp->OnComponentBeginOverlap.AddDynamic(this,&AMiniCharacter::OnBoxCompBeginOverlap);
+	BoxComp->OnComponentEndOverlap.AddDynamic(this, &AMiniCharacter::OnBoxCompEndOverlap);
+	
 }
 
 void AMiniCharacter::SetShareCamera(AShareCamera* Camera)
@@ -47,19 +60,63 @@ AShareCamera* AMiniCharacter::GetShareCamera() const
 	return ShareCamera.Get();
 }
 
+void AMiniCharacter::SetCharacterStatus(EMiniStatus Status)
+{
+	CharacterStatus = Status;
+	switch (CharacterStatus)
+	{
+	case EMiniStatus::Walk:
+		{
+			MovementComp->MaxWalkSpeed = 300.f;
+		}
+		break;
+	case EMiniStatus::Push:
+		{
+			MovementComp->MaxWalkSpeed = 150.f;
+		}
+		break;
+	default:
+		break;
+	}
+}
+
 void AMiniCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	SetCharacterStatus(EMiniStatus::Walk);
 }
 
 void AMiniCharacter::MoveForward(float Value)
 {
 	if(ShareCamera.Get() && Value)
 	{
-		const FRotator DirectionRotation(0,ShareCamera->GetCameraComp()->GetComponentRotation().Yaw,0);
-		const FVector Direction = FRotationMatrix(DirectionRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction,Value);
+		switch (CharacterStatus)
+		{
+		case EMiniStatus::Walk:
+			{
+				const FRotator DirectionRotation(0,ShareCamera->GetCameraComp()->GetComponentRotation().Yaw,0);
+				const FVector Direction = FRotationMatrix(DirectionRotation).GetUnitAxis(EAxis::X);
+				AddMovementInput(Direction,Value);
+			}
+			break;
+		case EMiniStatus::Push:
+			{
+				const FRotator DirectionRotation(0,ShareCamera->GetCameraComp()->GetComponentRotation().Yaw,0);
+				const FVector Direction = FRotationMatrix(DirectionRotation).GetUnitAxis(EAxis::X);
+				if(Value > 0 && GetActorForwardVector().Dot(Direction) >= 0)
+				{
+					AddMovementInput(GetActorForwardVector(),Value);
+				}
+				else if(Value < 0 && GetActorForwardVector().Dot(Direction) < 0)
+				{
+					AddMovementInput(GetActorForwardVector(),-Value);
+				}
+			}
+			break;
+		default:
+			break;
+		}
+		
 	}
 }
 
@@ -67,9 +124,32 @@ void AMiniCharacter::MoveRight(float Value)
 {
 	if(ShareCamera.Get() && Value)
 	{
-		const FRotator DirectionRotation(0,ShareCamera->GetCameraComp()->GetComponentRotation().Yaw,0);
-		const FVector Direction = FRotationMatrix(DirectionRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(Direction,Value);
+		switch (CharacterStatus)
+		{
+		case EMiniStatus::Walk:
+			{
+				const FRotator DirectionRotation(0,ShareCamera->GetCameraComp()->GetComponentRotation().Yaw,0);
+				const FVector Direction = FRotationMatrix(DirectionRotation).GetUnitAxis(EAxis::Y);
+				AddMovementInput(Direction,Value);
+			}
+			break;
+		case EMiniStatus::Push:
+			{
+				const FRotator DirectionRotation(0,ShareCamera->GetCameraComp()->GetComponentRotation().Yaw,0);
+				const FVector Direction = FRotationMatrix(DirectionRotation).GetUnitAxis(EAxis::Y);
+				if(Value > 0 && GetActorForwardVector().Dot(Direction) >= 0)
+				{
+					AddMovementInput(GetActorForwardVector(),Value);
+				}
+				else if(Value < 0 && GetActorForwardVector().Dot(Direction) < 0)
+				{
+					AddMovementInput(GetActorForwardVector(),-Value);
+				}
+			}
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -81,3 +161,37 @@ void AMiniCharacter::Turn(float Value)
 	}
 }
 
+void AMiniCharacter::InteractPressed()
+{
+	OnInteractPressed.ExecuteIfBound(this);
+}
+
+void AMiniCharacter::InteractReleased()
+{
+	OnInteractReleased.ExecuteIfBound(this);
+}
+
+void AMiniCharacter::OnBoxCompBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	IInteractionInterface* Interface = Cast<IInteractionInterface>(OtherActor);
+	if(Interface && !CurrInteractActor.Get())
+	{
+		CurrInteractActor = OtherActor;
+		OnInteractPressed.BindRaw(Interface, &IInteractionInterface::OnInteractExecute);
+		OnInteractReleased.BindRaw(Interface, &IInteractionInterface::OnInteractExit);
+		Interface->OnInteractEnable(this);
+	}
+}
+
+void AMiniCharacter::OnBoxCompEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	IInteractionInterface* Interface = Cast<IInteractionInterface>(OtherActor);
+	if(Interface && CurrInteractActor.Get() == OtherActor)
+	{
+		CurrInteractActor = nullptr;
+		OnInteractPressed.Unbind();
+		OnInteractReleased.Unbind();
+		Interface->OnInteractDisable(this);
+	}
+}

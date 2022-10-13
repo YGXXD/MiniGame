@@ -2967,6 +2967,18 @@
 		{
 			"Path": "$(ProjectDir)/Binaries/Win64/UnrealEditor-MiniGame.pdb",
 			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NodeGraphAssistant/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NodeGraphAssistant/Binaries/Win64/UnrealEditor-NodeGraphAssistant.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NodeGraphAssistant/Binaries/Win64/UnrealEditor-NodeGraphAssistant.pdb",
+			"Type": "SymbolFile"
 		}
 	],
 	"RuntimeDependencies": [
@@ -23480,6 +23492,10 @@
 		},
 		{
 			"Path": "$(ProjectDir)/MiniGame.uproject",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/NodeGraphAssistant/NodeGraphAssistant.uplugin",
 			"Type": "UFS"
 		}
 	],
