@@ -32,9 +32,6 @@ protected:
 	FTimerHandle PushHandle;
 	
 	UPROPERTY(VisibleDefaultsOnly)
-	TObjectPtr<USceneComponent> SceneComp;
-	
-	UPROPERTY(VisibleDefaultsOnly)
 	TObjectPtr<UStaticMeshComponent> WoodenBoxMesh;
 
 	UPROPERTY(VisibleDefaultsOnly)

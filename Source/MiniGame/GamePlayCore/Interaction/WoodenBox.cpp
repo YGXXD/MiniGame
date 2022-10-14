@@ -16,41 +16,41 @@ AWoodenBox::AWoodenBox(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
-	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComp"));
-	RootComponent = SceneComp.Get();
-	
 	WoodenBoxMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WoodenBoxMesh"));
-	WoodenBoxMesh->SetupAttachment(RootComponent);
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_WoodenBoxMesh(TEXT("StaticMesh'/Game/GamePlayAsset/map/map103/10_5map1_pushblock.10_5map1_pushblock'"));
+	RootComponent = WoodenBoxMesh;
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_WoodenBoxMesh(TEXT("StaticMesh'/Game/GamePlayAsset/map1/object/10_5map1_pushblock.10_5map1_pushblock'"));
 	if(SM_WoodenBoxMesh.Succeeded())
 	{
 		WoodenBoxMesh->SetStaticMesh(SM_WoodenBoxMesh.Object);
 	}
-	WoodenBoxMesh->SetRelativeLocation(FVector(0,0,-100));
+	WoodenBoxMesh->SetLinearDamping(0.01f);
+	WoodenBoxMesh->SetMassOverrideInKg(NAME_None,200,true);
+	//WoodenBoxMesh->SetConstraintMode(EDOFMode::Default);
 	
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
 	BoxComp->SetupAttachment(RootComponent);
 	BoxComp->SetCollisionProfileName(TEXT("InteractedObj"));
 	BoxComp->SetBoxExtent(FVector(110,110,110));
+	BoxComp->SetRelativeLocation(FVector(0,0,100));
 	
 	ArrowComp = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComp"));
 	ArrowComp->SetupAttachment(RootComponent);
 
 	ForwardPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ForwardPoint"));
 	ForwardPoint->SetupAttachment(RootComponent);
-	ForwardPoint->SetRelativeLocation(FVector(150,0,0));
+	ForwardPoint->SetRelativeLocation(FVector(140,0,80));
 
 	BackPoint = CreateDefaultSubobject<USceneComponent>(TEXT("BackPoint"));
 	BackPoint->SetupAttachment(RootComponent);
-	BackPoint->SetRelativeLocation(FVector(-150,0,0));
+	BackPoint->SetRelativeLocation(FVector(-140,0,80));
 	
 	RightPoint = CreateDefaultSubobject<USceneComponent>(TEXT("RightPoint"));
 	RightPoint->SetupAttachment(RootComponent);
-	RightPoint->SetRelativeLocation(FVector(0,150,0));
+	RightPoint->SetRelativeLocation(FVector(0,140,80));
 	
 	LeftPoint = CreateDefaultSubobject<USceneComponent>(TEXT("LeftPoint"));
 	LeftPoint->SetupAttachment(RootComponent);
-	LeftPoint->SetRelativeLocation(FVector(0,-150,0));
+	LeftPoint->SetRelativeLocation(FVector(0,-140,80));
 }
 
 void AWoodenBox::Tick(float DeltaSeconds)
@@ -64,7 +64,7 @@ void AWoodenBox::OnInteractExecute(AMiniCharacter* Character)
 	UKismetSystemLibrary::PrintString(GetWorld(),"OnInteractExecute");
 	
 	//计算推箱子的方向
-	FVector BoxToCharacter = Character->GetActorLocation() - GetActorLocation();
+	FVector BoxToCharacter = Character->GetActorLocation() - WoodenBoxMesh->GetComponentLocation();
 	BoxToCharacter.Normalize();
 	
 	const FVector BoxForward = FRotationMatrix(ArrowComp->GetComponentRotation()).GetUnitAxis(EAxis::X);
@@ -118,7 +118,7 @@ void AWoodenBox::OnInteractExecute(AMiniCharacter* Character)
 		if (Time >= 1.0f)
 		{
 			GetWorldTimerManager().PauseTimer(PushHandle);
-			this->AttachToActor(Character,FAttachmentTransformRules::KeepWorldTransform);
+			WoodenBoxMesh->SetSimulatePhysics(true);
 			// auto PushBoxLambda = [this,Character]()
 			// {
 			// 	const FVector Target = Character->GetActorForwardVector() * 145 + Character->GetActorLocation();
@@ -141,7 +141,7 @@ void AWoodenBox::OnInteractExit(AMiniCharacter* Character)
 	UKismetSystemLibrary::PrintString(GetWorld(),"OnInteractExit");
 	if(GetWorldTimerManager().IsTimerActive(PushHandle))
 		GetWorldTimerManager().PauseTimer(PushHandle);
-	this->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	WoodenBoxMesh->SetSimulatePhysics(false);
 	Character->SetCharacterStatus(EMiniStatus::Walk);
 }
 
