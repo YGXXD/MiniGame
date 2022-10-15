@@ -30,12 +30,14 @@ public:
 
 	void SetShareCamera(AShareCamera* Camera);
 	AShareCamera* GetShareCamera() const;
-
+	EMiniStatus GetCharacterStatus() const;
 	void SetCharacterStatus(EMiniStatus Status);
 protected:
 	virtual void BeginPlay() override;
 	void MoveForward(float Value);
 	void MoveRight(float Value);
+	virtual void Jump() override;
+	virtual void StopJumping() override;
 	void Turn(float Value);
 	void InteractPressed();
 	void InteractReleased();

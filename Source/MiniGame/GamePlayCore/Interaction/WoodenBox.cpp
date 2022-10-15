@@ -26,6 +26,7 @@ AWoodenBox::AWoodenBox(const FObjectInitializer& ObjectInitializer)
 	WoodenBoxMesh->SetLinearDamping(0.01f);
 	WoodenBoxMesh->SetMassOverrideInKg(NAME_None,200,true);
 	//WoodenBoxMesh->SetConstraintMode(EDOFMode::Default);
+	WoodenBoxMesh->SetMobility(EComponentMobility::Movable);
 	
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
 	BoxComp->SetupAttachment(RootComponent);
@@ -38,19 +39,19 @@ AWoodenBox::AWoodenBox(const FObjectInitializer& ObjectInitializer)
 
 	ForwardPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ForwardPoint"));
 	ForwardPoint->SetupAttachment(RootComponent);
-	ForwardPoint->SetRelativeLocation(FVector(140,0,80));
+	ForwardPoint->SetRelativeLocation(FVector(145,0,0));
 
 	BackPoint = CreateDefaultSubobject<USceneComponent>(TEXT("BackPoint"));
 	BackPoint->SetupAttachment(RootComponent);
-	BackPoint->SetRelativeLocation(FVector(-140,0,80));
+	BackPoint->SetRelativeLocation(FVector(-145,0,0));
 	
 	RightPoint = CreateDefaultSubobject<USceneComponent>(TEXT("RightPoint"));
 	RightPoint->SetupAttachment(RootComponent);
-	RightPoint->SetRelativeLocation(FVector(0,140,80));
+	RightPoint->SetRelativeLocation(FVector(0,145,0));
 	
 	LeftPoint = CreateDefaultSubobject<USceneComponent>(TEXT("LeftPoint"));
 	LeftPoint->SetupAttachment(RootComponent);
-	LeftPoint->SetRelativeLocation(FVector(0,-140,80));
+	LeftPoint->SetRelativeLocation(FVector(0,-145,0));
 }
 
 void AWoodenBox::Tick(float DeltaSeconds)
@@ -103,7 +104,7 @@ void AWoodenBox::OnInteractExecute(AMiniCharacter* Character)
 	FVector StartLocation = Character->GetActorLocation();
 	FRotator StartRotation = Character->GetActorRotation();
 	
-	FVector EndLocation = Point->GetComponentLocation();
+	FVector EndLocation = FVector(Point->GetComponentLocation().X, Point->GetComponentLocation().Y, StartLocation.Z);
 	FRotator EndRotation = PushRotator;
 
 	Character->SetCharacterStatus(EMiniStatus::Push);

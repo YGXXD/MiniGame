@@ -19,5 +19,7 @@ void UMiniAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		Speed = PlayerOwner->GetVelocity().Length();
 		bIsInAir = PlayerOwner->GetCharacterMovement()->IsFalling();
+		bIsPush = PlayerOwner->GetCharacterStatus() == EMiniStatus::Push;
+		bIsClimb = PlayerOwner->GetCharacterStatus() == EMiniStatus::Climb;
 	}
 }

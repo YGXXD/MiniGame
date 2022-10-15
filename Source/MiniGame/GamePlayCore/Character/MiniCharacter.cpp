@@ -33,11 +33,11 @@ AMiniCharacter::AMiniCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	MovementComp = GetCharacterMovement();
 	MovementComp->RotationRate = FRotator(0,720,0);
-	MovementComp->bOrientRotationToMovement = true;
-	MovementComp->JumpZVelocity = 600.f;
+	MovementComp->JumpZVelocity = 700.f;
 	MovementComp->AirControl = 0.8f;
-	MovementComp->MaxWalkSpeed = 300.f;
 	MovementComp->GravityScale = 2.f;
+	MovementComp->BrakingDecelerationFlying = 100.f;
+	SetCharacterStatus(EMiniStatus::Walk);
 
 	CurrInteractActor = nullptr;
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
@@ -60,6 +60,11 @@ AShareCamera* AMiniCharacter::GetShareCamera() const
 	return ShareCamera.Get();
 }
 
+EMiniStatus AMiniCharacter::GetCharacterStatus() const
+{
+	return CharacterStatus;
+}
+
 void AMiniCharacter::SetCharacterStatus(EMiniStatus Status)
 {
 	CharacterStatus = Status;
@@ -67,14 +72,24 @@ void AMiniCharacter::SetCharacterStatus(EMiniStatus Status)
 	{
 	case EMiniStatus::Walk:
 		{
+			MovementComp->bOrientRotationToMovement = true;
+			MovementComp->SetMovementMode(EMovementMode::MOVE_Walking);
 			MovementComp->MaxWalkSpeed = 300.f;
 		}
 		break;
 	case EMiniStatus::Push:
 		{
+			MovementComp->bOrientRotationToMovement = true;
+			MovementComp->SetMovementMode(EMovementMode::MOVE_Walking);
 			MovementComp->MaxWalkSpeed = 150.f;
 		}
 		break;
+	case EMiniStatus::Climb:
+		{
+			MovementComp->bOrientRotationToMovement = false;
+			MovementComp->MaxFlySpeed = 100.f;
+			MovementComp->SetMovementMode(EMovementMode::MOVE_Flying);
+		}
 	default:
 		break;
 	}
@@ -113,6 +128,11 @@ void AMiniCharacter::MoveForward(float Value)
 				}
 			}
 			break;
+		case EMiniStatus::Climb:
+			{
+				AddMovementInput(GetActorUpVector(),Value);
+			}
+			break;
 		default:
 			break;
 		}
@@ -147,10 +167,23 @@ void AMiniCharacter::MoveRight(float Value)
 				}
 			}
 			break;
+		case EMiniStatus::Climb:
+			break;
 		default:
 			break;
 		}
 	}
+}
+
+void AMiniCharacter::Jump()
+{
+	if(CharacterStatus == Walk)
+		Super::Jump();
+}
+
+void AMiniCharacter::StopJumping()
+{
+	Super::StopJumping();
 }
 
 void AMiniCharacter::Turn(float Value)

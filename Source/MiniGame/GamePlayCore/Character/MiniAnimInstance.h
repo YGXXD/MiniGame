@@ -24,4 +24,10 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsInAir;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsPush;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsClimb;
 };
